@@ -1,8 +1,8 @@
 # Nvidia-RAG-based-LLM-ChatBot
 
 # Installtion Procedure
-1 conda activate genai
-2 python -m venv venv
+    conda activate genai
+    python -m venv venv
 3.
  # Activate the virtual environment for Windows
     venv\Scripts\activate
