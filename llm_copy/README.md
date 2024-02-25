@@ -8,6 +8,9 @@
     venv\Scripts\activate
  # Activate the virtual environment for macOS and Linux
     source venv/bin/activate
-4.pip install -r requirements.txt
-5.export NVIDIA_API_KEY=""
-6.streamlit run main.py
+4.
+    ```
+    pip install -r requirements.txt
+    export NVIDIA_API_KEY=""
+    streamlit run main.py
+    ```
