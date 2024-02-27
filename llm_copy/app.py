@@ -315,7 +315,7 @@ def process_user_input(user_input, input_language):
     # Wait until the audio is finished playing
     while pygame.mixer.music.get_busy():
         pygame.time.Clock().tick(0.5)
-    cont_button = st.button("Continue")
+    cont_button = st.button("Click to Continue")
 
     if cont_button:
         pygame.mixer.Channel(0).stop()
