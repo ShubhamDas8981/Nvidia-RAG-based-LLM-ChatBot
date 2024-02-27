@@ -10,6 +10,9 @@ from langchain.text_splitter import CharacterTextSplitter
 from langchain.document_loaders import DirectoryLoader
 from langchain.vectorstores import FAISS
 import pickle
+from langdetect import detect
+import langid
+
 #from PIL import Image
 #from pytesseract import TesseractNotFoundError  # Import the specific exception
 #import pytesseract 
@@ -81,11 +84,13 @@ else:
             st.warning("No documents available to process!", icon="⚠️")
 
 # Component #4 - LLM Response Generation and Chat
+
 st.subheader("পিডিএফ সহকারী (PDF Sahokari) - PDF Assistant")
 
 st.subheader("Chat with your AI Assistant!")
 st.subheader("আপনার সহায়কের সাথে চ্যাট করুন !")
 st.subheader("अपने सहायक के साथ चैट करें !")
+
 
 chat_output_slot = st.empty()  # Create an empty space for dynamic chat updates
 
@@ -115,6 +120,8 @@ chain = prompt_template | llm | StrOutputParser()
 # Initialize the translator
 translator = googletrans.Translator()
 
+
+
 # Function to capture and play English voice input
 def capture_and_play_english_voice_input():
     recognizer = sr.Recognizer()
@@ -124,7 +131,15 @@ def capture_and_play_english_voice_input():
         audio = recognizer.listen(source, timeout=10)  # Adjust timeout as needed
 
     try:
-        st.success("English voice input captured successfully!")
+        st.success("Voice input captured successfully!")
+
+        # Detect the language of the spoken input
+        detected_language = detect(recognizer.recognize_google(audio))
+
+        if detected_language != "en":
+            st.warning(f"Detected language: {detected_language}. Expected English. Please speak in English.")
+            return ""
+
         text = recognizer.recognize_google(audio, language="en")  # English language code
         st.text(f"English Voice Input: {text}")
 
@@ -146,12 +161,11 @@ def capture_and_play_english_voice_input():
 
         return text
     except sr.UnknownValueError:
-        st.warning("Could not understand English audio.")
+        st.warning("Could not understand the spoken input.")
         return ""
     except sr.RequestError as e:
         st.error(f"Could not request results from Google Speech Recognition service; {e}")
         return ""
-
 
 # Function to capture and translate voice input for Hindi
 def capture_and_translate_voice_input_hindi():
@@ -165,6 +179,12 @@ def capture_and_translate_voice_input_hindi():
         st.success("Hindi voice input captured successfully!")
         text = recognizer.recognize_google(audio, language="hi-IN")  # Hindi language code
         st.text(f"Hindi Voice Input: {text}")
+
+        # Check detected language
+        detected_language, _ = langid.classify(text)
+        if detected_language != 'hi':
+            st.warning(f"Detected language: {detected_language}. Expected Hindi. Please speak in Hindi.")
+            return "", "", ""
 
         translation = translator.translate(text, dest="en")
         st.text(f"Translated: {translation.text}")
@@ -205,6 +225,12 @@ def capture_and_translate_voice_input_bengali():
         st.success("Bengali voice input captured successfully!")
         text = recognizer.recognize_google(audio, language="bn-IN")  # Bengali language code
         st.text(f"Bengali Voice Input: {text}")
+
+        # Check detected language
+        detected_language, _ = langid.classify(text)
+        if detected_language != 'bn':
+            st.warning(f"Detected language: {detected_language}. Expected Bengali. Please speak in Bengali.")
+            return "", "", ""
 
         translation = translator.translate(text, dest="en")
         st.text(f"Translated: {translation.text}")
@@ -267,18 +293,15 @@ def process_user_input(user_input, input_language):
 
         st.text(f"Regional Language Output: {regional_translation.text}")
         st.session_state.messages.append({"role": "assistant", "content": regional_translation.text})
-    elif input_language == "hi":  # Hindi input, provide answer in Hindi
-        st.text("Regional Language Output: (Original Hindi)")
-        st.session_state.messages.append({"role": "assistant", "content": full_response})
-    elif input_language == "bn":  # Bengali input, provide answer in Bengali
-        st.text("Regional Language Output: (Original Bengali)")
-        st.session_state.messages.append({"role": "assistant", "content": full_response})
+
+        # Convert the translated text to voice
+        converted_audio = gtts.gTTS(regional_translation.text, lang=input_language)
     else:
-        #st.text("Regional Language Output: (Original English)")
         st.session_state.messages.append({"role": "assistant", "content": full_response})
-    
-    # Convert the translated text to voice
-    converted_audio = gtts.gTTS(regional_translation.text, lang=input_language)
+        
+        # Convert the original English text to voice
+        converted_audio = gtts.gTTS(full_response, lang="en")
+
     # Save audio to BytesIO object instead of a file
     audio_bytes = BytesIO()
     converted_audio.write_to_fp(audio_bytes)
@@ -291,17 +314,20 @@ def process_user_input(user_input, input_language):
 
     # Wait until the audio is finished playing
     while pygame.mixer.music.get_busy():
-        pygame.time.Clock().tick(10)
+        pygame.time.Clock().tick(0.5)
+    cont_button = st.button("Continue")
+
+    if cont_button:
+        pygame.mixer.Channel(0).stop()
 
     # Update chat output dynamically
     chat_output_slot.markdown(f'<div style="height: 200px;"></div>', unsafe_allow_html=True)  # Empty space
     chat_output_slot.markdown('<style>div{transition: height 0.5s ease;}</style>', unsafe_allow_html=True)  # Smooth transition
-
 # Capture voice input buttons
 col1, col2, col3 = st.columns(3)
 
 # Capture English voice input button
-if col1.button("Capture English Voice Input"):
+if col1.button("Speak in English"):
     voice_input = capture_and_play_english_voice_input()
     if voice_input:
         #st.text(f"Original English Text: {voice_input}")
