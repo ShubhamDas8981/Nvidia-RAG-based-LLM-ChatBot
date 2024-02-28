@@ -38,12 +38,17 @@ with st.sidebar:
             st.success(f"File {uploaded_file.name} uploaded successfully!")
             with open(os.path.join(DOCS_DIR, uploaded_file.name), "wb") as f:
                 f.write(uploaded_file.read())
-    # Display the names of existing uploaded documents
+    # Display the names of existing uploaded documents with delete option
     st.subheader("Existing Uploaded Documents:")
     existing_documents = os.listdir(DOCS_DIR)
     if existing_documents:
         for doc_name in existing_documents:
-            st.text(doc_name)
+            delete_checkbox = st.checkbox(f"Delete {doc_name}")
+            if delete_checkbox:
+                doc_path = os.path.join(DOCS_DIR, doc_name)
+                os.remove(doc_path)
+                st.success(f"Document {doc_name} deleted successfully!")
+
     else:
         st.text("No documents uploaded yet.")
 
