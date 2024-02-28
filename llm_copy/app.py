@@ -100,9 +100,8 @@ else:
 st.subheader("পিডিএফ সহকারী (PDF Sahokari) - PDF Assistant")
 
 st.subheader("Chat with your AI Assistant!")
-st.subheader("আপনার সহায়কের সাথে চ্যাট করুন !")
 st.subheader("अपने सहायक के साथ चैट करें !")
-
+st.subheader("আপনার সহায়কের সাথে চ্যাট করুন !")
 
 chat_output_slot = st.empty()  # Create an empty space for dynamic chat updates
 
