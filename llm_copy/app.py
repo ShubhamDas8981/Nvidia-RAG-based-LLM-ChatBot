@@ -38,7 +38,14 @@ with st.sidebar:
             st.success(f"File {uploaded_file.name} uploaded successfully!")
             with open(os.path.join(DOCS_DIR, uploaded_file.name), "wb") as f:
                 f.write(uploaded_file.read())
-# Attempt to load raw documents from the directory
+    # Display the names of existing uploaded documents
+    st.subheader("Existing Uploaded Documents:")
+    existing_documents = os.listdir(DOCS_DIR)
+    if existing_documents:
+        for doc_name in existing_documents:
+            st.text(doc_name)
+    else:
+        st.text("No documents uploaded yet.")
 
 
 # Component #2 - Embedding Model and LLM
